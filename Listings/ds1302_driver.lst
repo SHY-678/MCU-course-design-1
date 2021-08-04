@@ -1,4 +1,4 @@
-C51 COMPILER V9.54   DS1302_DRIVER                                                         12/17/2020 01:21:45 PAGE 1   
+C51 COMPILER V9.54   DS1302_DRIVER                                                         12/29/2020 17:02:54 PAGE 1   
 
 
 C51 COMPILER V9.54, COMPILATION OF MODULE DS1302_DRIVER
@@ -62,7 +62,7 @@ line level    source
   52   1              unsigned char n,dat,dat1;
   53   1              addr |= 0x01;
   54   1              RST = 0;
-C51 COMPILER V9.54   DS1302_DRIVER                                                         12/17/2020 01:21:45 PAGE 2   
+C51 COMPILER V9.54   DS1302_DRIVER                                                         12/29/2020 17:02:54 PAGE 2   
 
   55   1              _nop_();
   56   1      
@@ -126,7 +126,7 @@ line level    source
  114   1              unsigned char n;
  115   1              for (n=0; n<7; n++)     //读取7个字节的时钟信号：分秒时日月周年
  116   1              {
-C51 COMPILER V9.54   DS1302_DRIVER                                                         12/17/2020 01:21:45 PAGE 3   
+C51 COMPILER V9.54   DS1302_DRIVER                                                         12/29/2020 17:02:54 PAGE 3   
 
  117   2                      TIME[n] = ds1302_read(ds1302_addr_tab[n]);
  118   2              }

@@ -566,6 +566,7 @@ void main(void)
 						key_pressed = 0;//ø™∑≈∞¥º¸∂¡»°
 						position=0;
 						my_8bit_flag&=0xf7;
+						//my_8bit_flag&=0x7f;
 						run_state = show_state;//∑µªÿœ‘ æ ±º‰ƒ£ Ω
 					}	
 					else
@@ -646,9 +647,9 @@ void timer0(void) interrupt 1		//∂® ±∆˜0µƒ÷–∂œ∑˛ŒÒ∫Ø ˝
 	if(menu_key == key_down)//…Ë÷√∞¥º¸µƒœ˚∂∂
 	{
 		
-		if(run_state != menu_state)
-			my_8bit_flag &= 0x0f;//∏ﬂ4Œª±Í÷æ«Â¡„
-		run_state = menu_state;
+		if(run_state == show_state)
+		{my_8bit_flag &= 0x0f;//∏ﬂ4Œª±Í÷æ«Â¡„
+			run_state = menu_state;}
 	}
 	else
 		EX0 = 1;
@@ -673,6 +674,7 @@ void timer0(void) interrupt 1		//∂® ±∆˜0µƒ÷–∂œ∑˛ŒÒ∫Ø ˝
 		TR0 = 0;
 		EX0 = 1;
 		my_8bit_flag |= 0x0f;//ÕÀ≥ˆ ±«Â≥˝—°œÓ∞¥º¸ª∫¥Ê
+		my_8bit_flag &= 0x0f;
 		key_pressed = 0;
 		my_8bit_flag&=0xf7;
 	}
@@ -687,6 +689,7 @@ void bcd_add_1(unsigned char *bcd_dat,unsigned char position)
 	}
 	switch(position)
 	{
+		static unsigned char temp;
 		case 0:		//√Î
 			if(bcd_dat[position] >= 0x60)		//59 √Î
 				bcd_dat[position] &= 0x80;		//√Î÷”«Â¡„
@@ -700,12 +703,39 @@ void bcd_add_1(unsigned char *bcd_dat,unsigned char position)
 				bcd_dat[position] &= 0xc0;		// ±÷”«Â¡„
 			break;
 		case 3:		//»’
-			if(bcd_dat[position] >= 0x32)		//31 »’
-				bcd_dat[position] &= 0xc0;		//»’«Â¡„
+			temp = bcd_dat[position+1]&0x1f;
+			if(temp == 0x04||temp==0x06||temp==0x09||temp==0x11)
+			{			//30 „
+				if(bcd_dat[position] >= 0x31)
+					bcd_dat[position] &= 0xc1;
+			}
+			else if(temp == 0x02)
+			{
+				if((bcd_dat[position+3]&0xf0/16*10+bcd_dat[position+3]&0x0f)%4==0)
+				{	
+					if(bcd_dat[position] >= 0x30)
+					{
+						bcd_dat[position] &= 0xc1;
+						bcd_dat[position]++;
+					}
+				}
+				else
+					if(bcd_dat[position] >= 0x29)
+						bcd_dat[position] &= 0xc1;
+				
+			}
+			else
+			{
+				if(bcd_dat[position] >= 0x32)
+				{
+					bcd_dat[position] &= 0xc1;
+					bcd_dat[position]++;
+				}
+			}
 			break;
 		case 4:		//‘¬
 			if(bcd_dat[position] >= 0x13)		//12 ‘¬
-				bcd_dat[position] &= 0xe0;		//‘¬«Â¡„
+				bcd_dat[position] &= 0xe1;		//‘¬«Â¡„
 			break;
 		case 5:		//÷‹
 			if(bcd_dat[position] >= 0x07)		// 7 ÷‹

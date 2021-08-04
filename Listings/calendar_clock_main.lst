@@ -1,4 +1,4 @@
-C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/17/2020 01:21:45 PAGE 1   
+C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/29/2020 17:02:54 PAGE 1   
 
 
 C51 COMPILER V9.54, COMPILATION OF MODULE CALENDAR_CLOCK_MAIN
@@ -62,7 +62,7 @@ line level    source
   52   1              P3 |= 0x10;//∆¡±Œ∑≥‘Í»Àµƒ∑‰√˘∆˜
   53   1              //ds1302_init();
   54   1              oled_init();
-C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/17/2020 01:21:45 PAGE 2   
+C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/29/2020 17:02:54 PAGE 2   
 
   55   1              Timer0Init();
   56   1              IT0=0; //Õ‚≤ø÷–∂œ0µÕµÁ∆Ω”––ß
@@ -126,7 +126,7 @@ line level    source
  114   3                                      if((my_8bit_flag&0x40)==0x00)//∏’Ω¯¿¥ ± «Â“ª¥Œ∆¡÷ªœ‘ æ“ª¥Œ≤Àµ•£¨±‹√‚—≠ª∑œ‘ æ∂‘≥Ã–Ú¥¯¿¥Ωœ¥Û—” ±
  115   3                                      {       
  116   4                                              oled_all_fill(0x00);
-C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/17/2020 01:21:45 PAGE 3   
+C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/29/2020 17:02:54 PAGE 3   
 
  117   4                                              oled_ascii_8x16_str(12,0,"<Option Menu>\0");
  118   4                                              oled_ascii_8x16_str(2,2,"1.Time Set\0");
@@ -190,7 +190,7 @@ line level    source
  176   7                                                              }
  177   6                                                              else
  178   6                                                                      key_pressed = 0;
-C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/17/2020 01:21:45 PAGE 4   
+C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/29/2020 17:02:54 PAGE 4   
 
  179   6                                                      }
  180   5                                                              
@@ -254,7 +254,7 @@ line level    source
  238   4                                                              oled_ascii_8x16_str(104,2,"OFF");
  239   4                                                      else
  240   4                                                              oled_ascii_8x16_str(104,2," ON");
-C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/17/2020 01:21:45 PAGE 5   
+C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/29/2020 17:02:54 PAGE 5   
 
  241   4                                                      if(my_8bit_flag&0x08)
  242   4                                                      {
@@ -318,7 +318,7 @@ line level    source
  300   5                                                              oled_ascii_8x16_str(58+24,4,&temp_buf[3]);
  301   5                                                      }
  302   4                                                      else
-C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/17/2020 01:21:45 PAGE 6   
+C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/29/2020 17:02:54 PAGE 6   
 
  303   4                                                      {
  304   5                                                              oled_ascii_8x16_str(58+24,4,"  ");
@@ -382,7 +382,7 @@ line level    source
  362   5                                                      timer0_count = 0;
  363   5                                                      
  364   5                                                      key_pressed = 0;//ø™∑≈∞¥º¸∂¡»°
-C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/17/2020 01:21:45 PAGE 7   
+C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/29/2020 17:02:54 PAGE 7   
 
  365   5                                              }
  366   4                                              else if(save_key == key_down)//save_key∞¥œ¬
@@ -446,7 +446,7 @@ line level    source
  424   4                                                      else
  425   4                                                      {
  426   5                                                              oled_ascii_8x16_str(10*8+16*2,2,"  ");
-C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/17/2020 01:21:45 PAGE 8   
+C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/29/2020 17:02:54 PAGE 8   
 
  427   5                                                      }
  428   4                                                      break;
@@ -510,7 +510,7 @@ line level    source
  486   5                                                              temp[0] = time_ascii[12];
  487   5                                                              temp[1] = time_ascii[13];       
  488   5                                                              temp[2] = '\0';
-C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/17/2020 01:21:45 PAGE 9   
+C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/29/2020 17:02:54 PAGE 9   
 
  489   5                                                              oled_ascii_8x16_str(31,5,temp);//œ‘ æ ±
  490   5                                                      }
@@ -574,7 +574,7 @@ line level    source
  548   5                                                      bcd_add_1(TIME,position);
  549   5                                                      key_pressed = 0;//ø™∑≈∞¥º¸∂¡»Î
  550   5                                                      time_ascii = ds1302_time_dat_to_ascii(TIME);//À¢–¬œ‘ æ
-C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/17/2020 01:21:45 PAGE 10  
+C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/29/2020 17:02:54 PAGE 10  
 
  551   5                                                      //show_time(time_ascii,2);
  552   5                                              }
@@ -594,212 +594,244 @@ line level    source
  566   5                                                      key_pressed = 0;//ø™∑≈∞¥º¸∂¡»°
  567   5                                                      position=0;
  568   5                                                      my_8bit_flag&=0xf7;
- 569   5                                                      run_state = show_state;//∑µªÿœ‘ æ ±º‰ƒ£ Ω
- 570   5                                              }       
- 571   4                                              else
- 572   4                                                      key_pressed = 0;//≈–∂®Œ™∂∂∂Ø
- 573   4                                      }
- 574   3                                      
- 575   3                                      break;
- 576   3                              default:
- 577   3                                      break;
- 578   3                                      
- 579   3                      }
- 580   2                      
- 581   2              }
- 582   1      }
- 583          
- 584          unsigned char* ds1302_time_dat_to_ascii(unsigned char time[])
- 585          {
- 586   1              static unsigned char time_ascii[] ="2020-11-09-120:00:12\0";
- 587   1              //¥Ê∑≈◊™ªª∫Ûµƒascii¬ÎƒÍ-‘¬-»’-÷‹ ±£∫∑÷£∫√Î
- 588   1              unsigned char* TIME = time;
- 589   1              time_ascii[19] = (TIME[0]&0x0f) + '0';          //√Î
- 590   1              time_ascii[18] = (TIME[0]&0x70)/16 + '0';
- 591   1              
- 592   1              time_ascii[16] = (TIME[1]&0x0f) + '0';          //∑÷
- 593   1              time_ascii[15] = (TIME[1]&0x70)/16 + '0';
- 594   1                      
- 595   1              time_ascii[13] = (TIME[2]&0x0f) + '0';          // ±
- 596   1              time_ascii[12] = (TIME[2]&0x30)/16 + '0';
- 597   1                      
- 598   1              time_ascii[11] = (TIME[5]&0x07) + '1';          //÷‹
- 599   1                      
- 600   1              time_ascii[9] = (TIME[3]&0x0f) + '0';           //»’
- 601   1              time_ascii[8] = (TIME[3]&0x30)/16 + '0';
- 602   1                      
- 603   1              time_ascii[6] = (TIME[4]&0x0f) + '0';           //‘¬
- 604   1              time_ascii[5] = (TIME[4]&0x10)/16 + '0';
- 605   1                      
- 606   1              time_ascii[3] = (TIME[6]&0x0f) + '0';           //ƒÍ
- 607   1              time_ascii[2] = (TIME[6]&0xf0)/16 + '0';
- 608   1              
- 609   1              time_ascii[1] =  '0';
- 610   1              time_ascii[0] =  '2';
- 611   1              return time_ascii;
- 612   1      }
-C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/17/2020 01:21:45 PAGE 11  
+ 569   5                                                      //my_8bit_flag&=0x7f;
+ 570   5                                                      run_state = show_state;//∑µªÿœ‘ æ ±º‰ƒ£ Ω
+ 571   5                                              }       
+ 572   4                                              else
+ 573   4                                                      key_pressed = 0;//≈–∂®Œ™∂∂∂Ø
+ 574   4                                      }
+ 575   3                                      
+ 576   3                                      break;
+ 577   3                              default:
+ 578   3                                      break;
+ 579   3                                      
+ 580   3                      }
+ 581   2                      
+ 582   2              }
+ 583   1      }
+ 584          
+ 585          unsigned char* ds1302_time_dat_to_ascii(unsigned char time[])
+ 586          {
+ 587   1              static unsigned char time_ascii[] ="2020-11-09-120:00:12\0";
+ 588   1              //¥Ê∑≈◊™ªª∫Ûµƒascii¬ÎƒÍ-‘¬-»’-÷‹ ±£∫∑÷£∫√Î
+ 589   1              unsigned char* TIME = time;
+ 590   1              time_ascii[19] = (TIME[0]&0x0f) + '0';          //√Î
+ 591   1              time_ascii[18] = (TIME[0]&0x70)/16 + '0';
+ 592   1              
+ 593   1              time_ascii[16] = (TIME[1]&0x0f) + '0';          //∑÷
+ 594   1              time_ascii[15] = (TIME[1]&0x70)/16 + '0';
+ 595   1                      
+ 596   1              time_ascii[13] = (TIME[2]&0x0f) + '0';          // ±
+ 597   1              time_ascii[12] = (TIME[2]&0x30)/16 + '0';
+ 598   1                      
+ 599   1              time_ascii[11] = (TIME[5]&0x07) + '1';          //÷‹
+ 600   1                      
+ 601   1              time_ascii[9] = (TIME[3]&0x0f) + '0';           //»’
+ 602   1              time_ascii[8] = (TIME[3]&0x30)/16 + '0';
+ 603   1                      
+ 604   1              time_ascii[6] = (TIME[4]&0x0f) + '0';           //‘¬
+ 605   1              time_ascii[5] = (TIME[4]&0x10)/16 + '0';
+ 606   1                      
+ 607   1              time_ascii[3] = (TIME[6]&0x0f) + '0';           //ƒÍ
+ 608   1              time_ascii[2] = (TIME[6]&0xf0)/16 + '0';
+ 609   1              
+ 610   1              time_ascii[1] =  '0';
+ 611   1              time_ascii[0] =  '2';
+ 612   1              return time_ascii;
+C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/29/2020 17:02:54 PAGE 11  
 
- 613          void show_time(unsigned char ascii_time[],unsigned char page_drift)
- 614          {
- 615   1      
+ 613   1      }
+ 614          void show_time(unsigned char ascii_time[],unsigned char page_drift)
+ 615          {
  616   1      
- 617   1              unsigned char* temp = ascii_time;
- 618   1              temp[10] = '\0';//»°ƒÍ‘¬»’
- 619   1              oled_ascii_8x16_str(0,page_drift,temp);//œ‘ æƒÍ‘¬»’
- 620   1              oled_chinese_characters_16x16(10*8,page_drift,WEEK[0]);//–«
- 621   1              oled_chinese_characters_16x16(10*8+16,page_drift,WEEK[1]);//∆⁄
- 622   1              oled_chinese_characters_16x16(10*8+16*2,page_drift,WEEK[ascii_time[11]-'0'+1]);//º∏
- 623   1              temp = ascii_time;
- 624   1              temp = temp+12;//»° ± ±∑÷√Î
- 625   1              oled_ascii_8x16_str(31,3+page_drift,temp);//œ‘ æ ±∑÷√Î
- 626   1      }
- 627          
- 628          void Timer0Init(void)           //50∫¡√Î@12.000MHz
- 629          {
- 630   1              TMOD = 0x01;            //…Ë÷√∂® ±∆˜Œ™16Œª
- 631   1              TL0 = 0xB0;             //…Ë÷√∂® ±∆˜≥ı÷µ
- 632   1              TH0 = 0x3C;             //…Ë÷√∂® ±∆˜≥ı÷µ
- 633   1              TF0 = 0;                //«Â≥˝÷–∂œ±Í÷æŒª
- 634   1              TR0 = 0;                //πÿ±’∂® ±∆˜
- 635   1      }
- 636          void exint0(void) interrupt 0           //Õ‚≤ø÷–∂œ0µƒ÷–∂œ∑˛ŒÒ∫Ø ˝
- 637          {
- 638   1              TR0 = 1;//¥Úø™∂® ±∆˜
- 639   1              EX0 = 0;
- 640   1      }
- 641          
- 642          void timer0(void) interrupt 1           //∂® ±∆˜0µƒ÷–∂œ∑˛ŒÒ∫Ø ˝
- 643          {
- 644   1              TL0 = 0xB0;             //…Ë÷√∂® ±∆˜≥ı÷µ
- 645   1              TH0 = 0x3C;             //…Ë÷√∂® ±∆˜≥ı÷µ
- 646   1              if(menu_key == key_down)//…Ë÷√∞¥º¸µƒœ˚∂∂
- 647   1              {
- 648   2                      
- 649   2                      if(run_state != menu_state)
- 650   2                              my_8bit_flag &= 0x0f;//∏ﬂ4Œª±Í÷æ«Â¡„
- 651   2                      run_state = menu_state;
- 652   2              }
- 653   1              else
- 654   1                      EX0 = 1;
- 655   1              if(run_state != show_state)
- 656   1                      timer0_count++;
- 657   1              if(timer0_count >200)//»Áπ˚10√Î√ª”–…Ë÷√≤Ÿ◊˜£¨ÕÀ≥ˆ≤Àµ•
- 658   1              {
- 659   2                      
- 660   2                      if(run_state == set_alarm)//¥”…Ë÷√ƒ÷÷”ÕÀªÿ¿¥
- 661   2                      {
- 662   3                              alarm_time[0][0] = TIME[0];//≤ª±£¥Ê…Ë÷√
- 663   3                              alarm_time[0][1] = TIME[1];
- 664   3                              alarm_time[0][2] = TIME[2];
- 665   3                              alarm_time[1][0] = TIME[3];
- 666   3                              alarm_time[1][1] = TIME[4];
- 667   3                              alarm_time[1][2] = TIME[5];
- 668   3                              
- 669   3                      }
- 670   2                      ds1302_read_all_time();//∂¡“ª¥Œ ±º‰µΩtime»´æ÷±‰¡ø ∑¿÷π“‚Õ‚
- 671   2                      run_state = show_state;
- 672   2                      timer0_count = 0;
- 673   2                      TR0 = 0;
- 674   2                      EX0 = 1;
-C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/17/2020 01:21:45 PAGE 12  
+ 617   1      
+ 618   1              unsigned char* temp = ascii_time;
+ 619   1              temp[10] = '\0';//»°ƒÍ‘¬»’
+ 620   1              oled_ascii_8x16_str(0,page_drift,temp);//œ‘ æƒÍ‘¬»’
+ 621   1              oled_chinese_characters_16x16(10*8,page_drift,WEEK[0]);//–«
+ 622   1              oled_chinese_characters_16x16(10*8+16,page_drift,WEEK[1]);//∆⁄
+ 623   1              oled_chinese_characters_16x16(10*8+16*2,page_drift,WEEK[ascii_time[11]-'0'+1]);//º∏
+ 624   1              temp = ascii_time;
+ 625   1              temp = temp+12;//»° ± ±∑÷√Î
+ 626   1              oled_ascii_8x16_str(31,3+page_drift,temp);//œ‘ æ ±∑÷√Î
+ 627   1      }
+ 628          
+ 629          void Timer0Init(void)           //50∫¡√Î@12.000MHz
+ 630          {
+ 631   1              TMOD = 0x01;            //…Ë÷√∂® ±∆˜Œ™16Œª
+ 632   1              TL0 = 0xB0;             //…Ë÷√∂® ±∆˜≥ı÷µ
+ 633   1              TH0 = 0x3C;             //…Ë÷√∂® ±∆˜≥ı÷µ
+ 634   1              TF0 = 0;                //«Â≥˝÷–∂œ±Í÷æŒª
+ 635   1              TR0 = 0;                //πÿ±’∂® ±∆˜
+ 636   1      }
+ 637          void exint0(void) interrupt 0           //Õ‚≤ø÷–∂œ0µƒ÷–∂œ∑˛ŒÒ∫Ø ˝
+ 638          {
+ 639   1              TR0 = 1;//¥Úø™∂® ±∆˜
+ 640   1              EX0 = 0;
+ 641   1      }
+ 642          
+ 643          void timer0(void) interrupt 1           //∂® ±∆˜0µƒ÷–∂œ∑˛ŒÒ∫Ø ˝
+ 644          {
+ 645   1              TL0 = 0xB0;             //…Ë÷√∂® ±∆˜≥ı÷µ
+ 646   1              TH0 = 0x3C;             //…Ë÷√∂® ±∆˜≥ı÷µ
+ 647   1              if(menu_key == key_down)//…Ë÷√∞¥º¸µƒœ˚∂∂
+ 648   1              {
+ 649   2                      
+ 650   2                      if(run_state == show_state)
+ 651   2                      {my_8bit_flag &= 0x0f;//∏ﬂ4Œª±Í÷æ«Â¡„
+ 652   3                              run_state = menu_state;}
+ 653   2              }
+ 654   1              else
+ 655   1                      EX0 = 1;
+ 656   1              if(run_state != show_state)
+ 657   1                      timer0_count++;
+ 658   1              if(timer0_count >200)//»Áπ˚10√Î√ª”–…Ë÷√≤Ÿ◊˜£¨ÕÀ≥ˆ≤Àµ•
+ 659   1              {
+ 660   2                      
+ 661   2                      if(run_state == set_alarm)//¥”…Ë÷√ƒ÷÷”ÕÀªÿ¿¥
+ 662   2                      {
+ 663   3                              alarm_time[0][0] = TIME[0];//≤ª±£¥Ê…Ë÷√
+ 664   3                              alarm_time[0][1] = TIME[1];
+ 665   3                              alarm_time[0][2] = TIME[2];
+ 666   3                              alarm_time[1][0] = TIME[3];
+ 667   3                              alarm_time[1][1] = TIME[4];
+ 668   3                              alarm_time[1][2] = TIME[5];
+ 669   3                              
+ 670   3                      }
+ 671   2                      ds1302_read_all_time();//∂¡“ª¥Œ ±º‰µΩtime»´æ÷±‰¡ø ∑¿÷π“‚Õ‚
+ 672   2                      run_state = show_state;
+ 673   2                      timer0_count = 0;
+ 674   2                      TR0 = 0;
+C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/29/2020 17:02:54 PAGE 12  
 
- 675   2                      my_8bit_flag |= 0x0f;//ÕÀ≥ˆ ±«Â≥˝—°œÓ∞¥º¸ª∫¥Ê
- 676   2                      key_pressed = 0;
- 677   2                      my_8bit_flag&=0xf7;
- 678   2              }
- 679   1      }
- 680          
- 681          void bcd_add_1(unsigned char *bcd_dat,unsigned char position)
- 682          {
- 683   1              bcd_dat[position]++;
- 684   1              if((bcd_dat[position]&0x0f)>9)                                   //BCDΩ¯Œª∑Ω Ω
- 685   1              {
- 686   2                      bcd_dat[position]=bcd_dat[position]+6;
- 687   2              }
- 688   1              switch(position)
- 689   1              {
- 690   2                      case 0:         //√Î
- 691   2                              if(bcd_dat[position] >= 0x60)           //59 √Î
- 692   2                                      bcd_dat[position] &= 0x80;              //√Î÷”«Â¡„
- 693   2                              break;
- 694   2                      case 1:         //∑÷
- 695   2                              if(bcd_dat[position] >= 0x60)           //59 ∑÷
- 696   2                                      bcd_dat[position] &= 0x80;              //∑÷÷”«Â¡„
- 697   2                              break;
- 698   2                      case 2:         // ±
- 699   2                              if(bcd_dat[position] >= 0x24)           //23  ±
- 700   2                                      bcd_dat[position] &= 0xc0;              // ±÷”«Â¡„
- 701   2                              break;
- 702   2                      case 3:         //»’
- 703   2                              if(bcd_dat[position] >= 0x32)           //31 »’
- 704   2                                      bcd_dat[position] &= 0xc0;              //»’«Â¡„
- 705   2                              break;
- 706   2                      case 4:         //‘¬
- 707   2                              if(bcd_dat[position] >= 0x13)           //12 ‘¬
- 708   2                                      bcd_dat[position] &= 0xe0;              //‘¬«Â¡„
- 709   2                              break;
- 710   2                      case 5:         //÷‹
- 711   2                              if(bcd_dat[position] >= 0x07)           // 7 ÷‹
- 712   2                                      bcd_dat[position] &= 0xf0;              //÷‹«Â¡„
- 713   2                              break;
- 714   2                      case 6:         //ƒÍ
- 715   2                              if(bcd_dat[position] > 0x99)            //99 ƒÍ
- 716   2                                      bcd_dat[position] &= 0x00;              //ƒÍ«Â¡„
- 717   2                              break;
- 718   2              }       
- 719   1      }
- 720          
- 721          void delay1ms()         //@12.000MHz
- 722          {
- 723   1              unsigned char i, j;
- 724   1      
- 725   1              i = 12;
- 726   1              j = 169;
- 727   1              do
- 728   1              {
- 729   2                      while (--j);
- 730   2              } while (--i);
- 731   1      }
- 732          
- 733          void alarm_show(void)
- 734          {
- 735   1              temp_buf[0]=(alarm_time[0][2]&0x30)/16 + '0';
- 736   1              temp_buf[1]=(alarm_time[0][2]&0x0f) + '0';    // ±
-C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/17/2020 01:21:45 PAGE 13  
+ 675   2                      EX0 = 1;
+ 676   2                      my_8bit_flag |= 0x0f;//ÕÀ≥ˆ ±«Â≥˝—°œÓ∞¥º¸ª∫¥Ê
+ 677   2                      my_8bit_flag &= 0x0f;
+ 678   2                      key_pressed = 0;
+ 679   2                      my_8bit_flag&=0xf7;
+ 680   2              }
+ 681   1      }
+ 682          
+ 683          void bcd_add_1(unsigned char *bcd_dat,unsigned char position)
+ 684          {
+ 685   1              bcd_dat[position]++;
+ 686   1              if((bcd_dat[position]&0x0f)>9)                                   //BCDΩ¯Œª∑Ω Ω
+ 687   1              {
+ 688   2                      bcd_dat[position]=bcd_dat[position]+6;
+ 689   2              }
+ 690   1              switch(position)
+ 691   1              {
+ 692   2                      static unsigned char temp;
+ 693   2                      case 0:         //√Î
+ 694   2                              if(bcd_dat[position] >= 0x60)           //59 √Î
+ 695   2                                      bcd_dat[position] &= 0x80;              //√Î÷”«Â¡„
+ 696   2                              break;
+ 697   2                      case 1:         //∑÷
+ 698   2                              if(bcd_dat[position] >= 0x60)           //59 ∑÷
+ 699   2                                      bcd_dat[position] &= 0x80;              //∑÷÷”«Â¡„
+ 700   2                              break;
+ 701   2                      case 2:         // ±
+ 702   2                              if(bcd_dat[position] >= 0x24)           //23  ±
+ 703   2                                      bcd_dat[position] &= 0xc0;              // ±÷”«Â¡„
+ 704   2                              break;
+ 705   2                      case 3:         //»’
+ 706   2                              temp = bcd_dat[position+1]&0x1f;
+ 707   2                              if(temp == 0x04||temp==0x06||temp==0x09||temp==0x11)
+ 708   2                              {                       //30 „
+ 709   3                                      if(bcd_dat[position] >= 0x31)
+ 710   3                                              bcd_dat[position] &= 0xc1;
+ 711   3                              }
+ 712   2                              else if(temp == 0x02)
+ 713   2                              {
+ 714   3                                      if((bcd_dat[position+3]&0xf0/16*10+bcd_dat[position+3]&0x0f)%4==0)
+ 715   3                                      {       
+ 716   4                                              if(bcd_dat[position] >= 0x30)
+ 717   4                                              {
+ 718   5                                                      bcd_dat[position] &= 0xc1;
+ 719   5                                                      bcd_dat[position]++;
+ 720   5                                              }
+ 721   4                                      }
+ 722   3                                      else
+ 723   3                                              if(bcd_dat[position] >= 0x29)
+ 724   3                                                      bcd_dat[position] &= 0xc1;
+ 725   3                                      
+ 726   3                              }
+ 727   2                              else
+ 728   2                              {
+ 729   3                                      if(bcd_dat[position] >= 0x32)
+ 730   3                                      {
+ 731   4                                              bcd_dat[position] &= 0xc1;
+ 732   4                                              bcd_dat[position]++;
+ 733   4                                      }
+ 734   3                              }
+ 735   2                              break;
+ 736   2                      case 4:         //‘¬
+C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/29/2020 17:02:54 PAGE 13  
 
- 737   1              temp_buf[2]=':';
- 738   1              temp_buf[3]=(alarm_time[0][1]&0x70)/16 + '0';
- 739   1              temp_buf[4]=(alarm_time[0][1]&0x0f) + '0';//∑÷
- 740   1              temp_buf[5]='\0';
- 741   1              oled_ascii_8x16_str(58,2,temp_buf);
- 742   1              temp_buf[0]=(alarm_time[1][2]&0x30)/16 + '0';
- 743   1              temp_buf[1]=(alarm_time[1][2]&0x0f) + '0';    // ±
- 744   1              temp_buf[2]=':';
- 745   1              temp_buf[3]=(alarm_time[1][1]&0x70)/16 + '0';
- 746   1              temp_buf[4]=(alarm_time[1][1]&0x0f) + '0';//∑÷
- 747   1              temp_buf[5]='\0';
- 748   1              oled_ascii_8x16_str(58,4,temp_buf);
- 749   1              if(alarm_time[0][0] == 0x00)
- 750   1                      oled_ascii_8x16_str(104,2,"OFF");
- 751   1              else
- 752   1                      oled_ascii_8x16_str(104,2," ON");
- 753   1              if(alarm_time[1][0] == 0x00)
- 754   1                      oled_ascii_8x16_str(104,4,"OFF");
- 755   1              else
- 756   1                      oled_ascii_8x16_str(104,4," ON");
- 757   1      }
+ 737   2                              if(bcd_dat[position] >= 0x13)           //12 ‘¬
+ 738   2                                      bcd_dat[position] &= 0xe1;              //‘¬«Â¡„
+ 739   2                              break;
+ 740   2                      case 5:         //÷‹
+ 741   2                              if(bcd_dat[position] >= 0x07)           // 7 ÷‹
+ 742   2                                      bcd_dat[position] &= 0xf0;              //÷‹«Â¡„
+ 743   2                              break;
+ 744   2                      case 6:         //ƒÍ
+ 745   2                              if(bcd_dat[position] > 0x99)            //99 ƒÍ
+ 746   2                                      bcd_dat[position] &= 0x00;              //ƒÍ«Â¡„
+ 747   2                              break;
+ 748   2              }       
+ 749   1      }
+ 750          
+ 751          void delay1ms()         //@12.000MHz
+ 752          {
+ 753   1              unsigned char i, j;
+ 754   1      
+ 755   1              i = 12;
+ 756   1              j = 169;
+ 757   1              do
+ 758   1              {
+ 759   2                      while (--j);
+ 760   2              } while (--i);
+ 761   1      }
+ 762          
+ 763          void alarm_show(void)
+ 764          {
+ 765   1              temp_buf[0]=(alarm_time[0][2]&0x30)/16 + '0';
+ 766   1              temp_buf[1]=(alarm_time[0][2]&0x0f) + '0';    // ±
+ 767   1              temp_buf[2]=':';
+ 768   1              temp_buf[3]=(alarm_time[0][1]&0x70)/16 + '0';
+ 769   1              temp_buf[4]=(alarm_time[0][1]&0x0f) + '0';//∑÷
+ 770   1              temp_buf[5]='\0';
+ 771   1              oled_ascii_8x16_str(58,2,temp_buf);
+ 772   1              temp_buf[0]=(alarm_time[1][2]&0x30)/16 + '0';
+ 773   1              temp_buf[1]=(alarm_time[1][2]&0x0f) + '0';    // ±
+ 774   1              temp_buf[2]=':';
+ 775   1              temp_buf[3]=(alarm_time[1][1]&0x70)/16 + '0';
+ 776   1              temp_buf[4]=(alarm_time[1][1]&0x0f) + '0';//∑÷
+ 777   1              temp_buf[5]='\0';
+ 778   1              oled_ascii_8x16_str(58,4,temp_buf);
+ 779   1              if(alarm_time[0][0] == 0x00)
+ 780   1                      oled_ascii_8x16_str(104,2,"OFF");
+ 781   1              else
+ 782   1                      oled_ascii_8x16_str(104,2," ON");
+ 783   1              if(alarm_time[1][0] == 0x00)
+ 784   1                      oled_ascii_8x16_str(104,4,"OFF");
+ 785   1              else
+ 786   1                      oled_ascii_8x16_str(104,4," ON");
+ 787   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =   3011    ----
+   CODE SIZE        =   3218    ----
    CONSTANT SIZE    =    166    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----
-   DATA SIZE        =     49      10
+   DATA SIZE        =     50      11
    IDATA SIZE       =   ----    ----
    BIT SIZE         =   ----    ----
 END OF MODULE INFORMATION.
+
+C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/29/2020 17:02:54 PAGE 14  
 
 
 C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

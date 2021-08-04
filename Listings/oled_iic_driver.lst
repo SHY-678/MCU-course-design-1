@@ -1,4 +1,4 @@
-C51 COMPILER V9.54   OLED_IIC_DRIVER                                                       12/17/2020 01:21:45 PAGE 1   
+C51 COMPILER V9.54   OLED_IIC_DRIVER                                                       12/29/2020 17:02:54 PAGE 1   
 
 
 C51 COMPILER V9.54, COMPILATION OF MODULE OLED_IIC_DRIVER
@@ -62,7 +62,7 @@ line level    source
   52   1          IIC_SCL_SET;                    
   53   1          _nop_();_nop_();
   54   1          ack_bit = IIC_SDA;//acknowledeg status                          
-C51 COMPILER V9.54   OLED_IIC_DRIVER                                                       12/17/2020 01:21:45 PAGE 2   
+C51 COMPILER V9.54   OLED_IIC_DRIVER                                                       12/29/2020 17:02:54 PAGE 2   
 
   55   1          IIC_SCL_CLR;
   56   1          return ack_bit;       
@@ -126,7 +126,7 @@ line level    source
  114          
  115          /*******************************************************************************
  116          * 函数功能                 :oled initialization
-C51 COMPILER V9.54   OLED_IIC_DRIVER                                                       12/17/2020 01:21:45 PAGE 3   
+C51 COMPILER V9.54   OLED_IIC_DRIVER                                                       12/29/2020 17:02:54 PAGE 3   
 
  117          * 输    入         :无
  118          * 输    出         : 无*/
@@ -190,7 +190,7 @@ line level    source
  176   1          unsigned char c=0,i=0,j=0;
  177   1          while (ch[j]!='\0')
  178   1          {
-C51 COMPILER V9.54   OLED_IIC_DRIVER                                                       12/17/2020 01:21:45 PAGE 4   
+C51 COMPILER V9.54   OLED_IIC_DRIVER                                                       12/29/2020 17:02:54 PAGE 4   
 
  179   2              c =ch[j]-32;
  180   2              if(x>127)
@@ -254,7 +254,7 @@ line level    source
  236          //        x+=16;
  237          //        j++;
  238          //    }
-C51 COMPILER V9.54   OLED_IIC_DRIVER                                                       12/17/2020 01:21:45 PAGE 5   
+C51 COMPILER V9.54   OLED_IIC_DRIVER                                                       12/29/2020 17:02:54 PAGE 5   
 
  239          //}
  240          
@@ -318,7 +318,7 @@ line level    source
  298          //}
  299          /***********显示BMP128*64图片 起始坐标(x,y),x0~127,y页0~7*****************/
  300          //void Draw_BMP(unsigned char x0, y0,x1, y1,unsigned char BMP[])
-C51 COMPILER V9.54   OLED_IIC_DRIVER                                                       12/17/2020 01:21:45 PAGE 6   
+C51 COMPILER V9.54   OLED_IIC_DRIVER                                                       12/29/2020 17:02:54 PAGE 6   
 
  301          //{        
  302          // unsigned int j=0;
