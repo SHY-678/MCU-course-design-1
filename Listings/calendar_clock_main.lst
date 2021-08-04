@@ -1,0 +1,805 @@
+C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/17/2020 01:21:45 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE CALENDAR_CLOCK_MAIN
+OBJECT MODULE PLACED IN .\Objects\calendar_clock_main.obj
+COMPILER INVOKED BY: E:\keil 5 mdk\C51\BIN\C51.EXE calendar_clock_main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRI
+                    -NT(.\Listings\calendar_clock_main.lst) OBJECT(.\Objects\calendar_clock_main.obj)
+
+line level    source
+
+   1          #include <reg52.h>
+   2          #include "ds1302_driver.h"
+   3          #include "oled_iic_driver.h"
+   4          
+   5          /*程序运行状态标志*/
+   6          #define show_state 0            //显示模式
+   7          #define menu_state  1        //菜单模式
+   8          #define set_alarm  2        //闹钟设置
+   9          #define set_time   3            //时间设置
+  10          #define alarm_noisy 4
+  11          
+  12          //按键按下的电平状态
+  13          #define key_down 0                      
+  14          #define key_up   1
+  15          
+  16          sbit menu_key = P2^7;//将按键跳到P3^2 外部中断0输入
+  17          sbit shift_key = P2^6;
+  18          sbit add_key = P2^5;
+  19          sbit save_key = P2^4;
+  20          sbit alarm = P3^4;
+  21          
+  22          unsigned char temp_buf[10];             //缓冲区
+  23          unsigned char alarm_time[2][3] ={{0x00, 0x30,0x08},{0x00, 0x20,0x08}};//闹钟时间2组开关分时bcd码存放
+  24          unsigned char *time_ascii;                              //用于存放转换成ascii后的时间数据
+  25          unsigned char run_state = show_state;   //初始化程序运行状态为显示模式
+  26          unsigned char timer0_count = 1;                 //定时器溢出次数
+  27          unsigned char key_pressed = 0;                  //有无按键按下
+  28          unsigned char tc = 0;                                   //用于消抖
+  29          unsigned char my_8bit_flag = 0x00;              //8位标志位
+  30                                                                                          //显示标志 菜单标志 设闹钟标志 设时间标志 
+  31                                                                                          //闪烁标志 alarm 选中time set  选中alarm set
+  32          int position = 0;//设置时间时候的光标位置
+  33          unsigned char blink_count = 0;
+  34          
+  35          //***********************************************************************************
+  36          void alarm_show(void);
+  37          
+  38          void delay1ms(void);
+  39                  
+  40          unsigned char* ds1302_time_dat_to_ascii(unsigned char time[]);/* *将ds1302读出的数据转换为ascii码*/     
+  41          
+  42          void show_time(unsigned char ascii_time[],unsigned char page_drift);/* *用于显示时间*/
+  43          
+  44          void bcd_add_1(unsigned char *bcd_dat,unsigned char position);//设置时间或闹钟时调用，对应位置的bcd码加一
+  45          
+  46          void Timer0Init(void);//50毫秒定时器0初始化@12.000MHz           
+  47          
+  48          
+  49          void main(void)
+  50          {
+  51   1              
+  52   1              P3 |= 0x10;//屏蔽烦躁人的蜂鸣器
+  53   1              //ds1302_init();
+  54   1              oled_init();
+C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/17/2020 01:21:45 PAGE 2   
+
+  55   1              Timer0Init();
+  56   1              IT0=0; //外部中断0低电平有效
+  57   1              EX0=1; //外部中断开启
+  58   1              ET0=1; //开启定时器0中断
+  59   1              TR0 = 0;
+  60   1              EA=1;  //总中断开启
+  61   1              while(1)
+  62   1              {
+  63   2                      switch(run_state)
+  64   2                      {
+  65   3                              case show_state:
+  66   3                                      if((my_8bit_flag&0x80)==0x00)//刚进来时 清一次屏
+  67   3                                      {       
+  68   4                                              oled_all_fill(0x00);
+  69   4                                              my_8bit_flag |= 0x80;
+  70   4                                              oled_ascii_8x16_str(0,6,"Alarm\0");
+  71   4                                              if(alarm_time[0][0])
+  72   4                                                      oled_ascii_8x16_str(42,6,"1 ON\0");
+  73   4                                              else
+  74   4                                                      oled_ascii_8x16_str(42,6,"1 OFF\0");
+  75   4                                              if(alarm_time[1][0])
+  76   4                                                      oled_ascii_8x16_str(85,6,"2 ON\0");
+  77   4                                              else
+  78   4                                                      oled_ascii_8x16_str(85,6,"2 OFF\0");
+  79   4                                                      
+  80   4                                      }
+  81   3                                      ds1302_read_all_time();
+  82   3                                      time_ascii = ds1302_time_dat_to_ascii(TIME);
+  83   3                                      show_time(time_ascii,0);
+  84   3                                      if(alarm_time[0][0])
+  85   3                                              if((TIME[1]==alarm_time[0][1]) && (TIME[2]==alarm_time[0][2]) && (TIME[0]==0x00))
+  86   3                                                      run_state = alarm_noisy;
+  87   3                                      if(alarm_time[1][0])
+  88   3                                              if((TIME[1]==alarm_time[1][1]) && (TIME[2]==alarm_time[1][2]) && (TIME[0]==0x00))
+  89   3                                                      run_state = alarm_noisy;
+  90   3                                      break;
+  91   3                              case alarm_noisy:
+  92   3                                      alarm = ~alarm;
+  93   3                                      timer0_count = 0;
+  94   3                                      {
+  95   4                                              unsigned char tc = 200;
+  96   4                                              while(tc--)
+  97   4                                                      delay1ms();
+  98   4                                      }
+  99   3                                      if((shift_key==key_down)||(add_key==key_down)||(save_key==key_down))
+ 100   3                                      {
+ 101   4                                              unsigned char tc = 80;
+ 102   4                                              key_pressed = 1;
+ 103   4                                              while(!(tc--)) delay1ms();
+ 104   4                                                      
+ 105   4                                              if((shift_key==key_down)||(add_key==key_down)||(save_key==key_down))
+ 106   4                                              {       
+ 107   5                                                      alarm = 1;
+ 108   5                                                      run_state = show_state;
+ 109   5                                              }
+ 110   4      
+ 111   4                                      }
+ 112   3                                      break;
+ 113   3                              case menu_state:
+ 114   3                                      if((my_8bit_flag&0x40)==0x00)//刚进来时 清一次屏只显示一次菜单，避免循环显示对程序带来较大延时
+ 115   3                                      {       
+ 116   4                                              oled_all_fill(0x00);
+C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/17/2020 01:21:45 PAGE 3   
+
+ 117   4                                              oled_ascii_8x16_str(12,0,"<Option Menu>\0");
+ 118   4                                              oled_ascii_8x16_str(2,2,"1.Time Set\0");
+ 119   4                                              oled_ascii_8x16_str(2,4,"2.Alarm Set\0");
+ 120   4                                              oled_ascii_8x16_str(0,6,"@Author:CTBU^Shy\0");
+ 121   4                                              my_8bit_flag |= 0x40;
+ 122   4                                      }
+ 123   3                                      /* *按键检测 */
+ 124   3                                      if((key_pressed==0)&&((shift_key==key_down)||(add_key==key_down)||(save_key==key_down)))
+ 125   3                                      {
+ 126   4                                              
+ 127   4                                              tc = 20;//用于消抖
+ 128   4                                              key_pressed = 1;
+ 129   4                                      }
+ 130   3                                      delay1ms();
+ 131   3                                      if(key_pressed)
+ 132   3                                      {
+ 133   4                                              tc--;
+ 134   4                                              if(!tc)//消抖结束
+ 135   4                                              {
+ 136   5                                                      if(add_key == key_down)//add_key按下
+ 137   5                                                      {
+ 138   6                                                              my_8bit_flag |= 0x01;//alarm set
+ 139   6                                                              my_8bit_flag &= 0xfd;//off time set
+ 140   6                                                              timer0_count = 0;
+ 141   6                                                              key_pressed = 0;
+ 142   6                                                              oled_ascii_8x16_str(80,2,"    \0");
+ 143   6                                                              oled_ascii_8x16_str(88,4,"<-<-\0");
+ 144   6                                                      }
+ 145   5                                                      else if(shift_key == key_down)//shift_key按下
+ 146   5                                                      {
+ 147   6                                                              my_8bit_flag |= 0x02;//time set
+ 148   6                                                              my_8bit_flag &= 0xfe;//off alram set
+ 149   6                                                              timer0_count = 0;
+ 150   6                                                              key_pressed = 0;
+ 151   6                                                              oled_ascii_8x16_str(80,2,"<-<-\0");
+ 152   6                                                              oled_ascii_8x16_str(88,4,"    \0");
+ 153   6                                                      }
+ 154   5                                                      else if(save_key == key_down)//save_key按下
+ 155   5                                                      {
+ 156   6                                                              if((my_8bit_flag&0x01) == 0x01)//alarm set
+ 157   6                                                              {
+ 158   7                                                                      timer0_count = 0;
+ 159   7                                                                      TR0 = 1;
+ 160   7                                                                      EX0 = 0;
+ 161   7                                                                      my_8bit_flag |= 0x03;//退出时清除选项按键缓存
+ 162   7                                                                      run_state = set_alarm;
+ 163   7                                                                      key_pressed = 0;
+ 164   7                                                                      break;//退出菜单
+ 165   7                                                              }
+ 166   6                                                              else if((my_8bit_flag&0x02) == 0x02)//time set
+ 167   6                                                              {
+ 168   7                                                                      timer0_count = 0;
+ 169   7                                                                      TR0 = 1;
+ 170   7                                                                      EX0 = 0;
+ 171   7                                                                      my_8bit_flag |= 0x03;//退出时清除选项按键缓存
+ 172   7                                                                      run_state = set_time;
+ 173   7                                                                      key_pressed = 0;        
+ 174   7                                                                      break;//退出菜单
+ 175   7                                                                      
+ 176   7                                                              }
+ 177   6                                                              else
+ 178   6                                                                      key_pressed = 0;
+C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/17/2020 01:21:45 PAGE 4   
+
+ 179   6                                                      }
+ 180   5                                                              
+ 181   5                                                      else
+ 182   5                                                              key_pressed = 0;//判定为抖动
+ 183   5                                                              
+ 184   5                                              }
+ 185   4                                      }
+ 186   3                                      break;
+ 187   3                              case set_alarm:
+ 188   3                                      if((my_8bit_flag&0x20)==0x00)//只显示一次菜单，避免循环显示对程序带来较大延时
+ 189   3                                      {
+ 190   4                                              oled_all_fill(0x00);
+ 191   4                                              oled_ascii_8x16_str(12,0,"< Alarm Set >\0");
+ 192   4                                              oled_ascii_8x16_str(2,2,"Alarm1@\0");
+ 193   4                                              oled_ascii_8x16_str(2,4,"Alarm2@\0");
+ 194   4                                              alarm_show();
+ 195   4                                              my_8bit_flag |= 0x20;
+ 196   4                                              position = 0;
+ 197   4                                              
+ 198   4                                              TIME[0] = alarm_time[0][0];
+ 199   4                                              TIME[1] = alarm_time[0][1];
+ 200   4                                              TIME[2] = alarm_time[0][2];
+ 201   4                                              TIME[3] = alarm_time[1][0];
+ 202   4                                              TIME[4] = alarm_time[1][1];
+ 203   4                                              TIME[5] = alarm_time[1][2];
+ 204   4                                      }
+ 205   3                                      /*闪烁设置闹钟的实现*///12.16
+ 206   3                                      if(my_8bit_flag&0x08)
+ 207   3                                      {
+ 208   4                                              if(--blink_count==0)
+ 209   4                                                      my_8bit_flag&=0xf7;
+ 210   4                                      }
+ 211   3                                      else
+ 212   3                                      {
+ 213   4                                              if(++blink_count==10)
+ 214   4                                                      my_8bit_flag|=0x08;
+ 215   4                                      }
+ 216   3                                      switch(position)
+ 217   3                                      {
+ 218   4                                              case 0:
+ 219   4                                                      temp_buf[0]=(alarm_time[1][2]&0x30)/16 + '0';
+ 220   4                                                      temp_buf[1]=(alarm_time[1][2]&0x0f) + '0';    //时
+ 221   4                                                      temp_buf[2]='\0';
+ 222   4                                                      oled_ascii_8x16_str(58,4,temp_buf);//点亮前一位
+ 223   4                                                      
+ 224   4                                                      if(my_8bit_flag&0x08)
+ 225   4                                                      {
+ 226   5                                                              if(alarm_time[0][0] == 0x00)
+ 227   5                                                                      oled_ascii_8x16_str(104,2,"OFF");
+ 228   5                                                              else
+ 229   5                                                                      oled_ascii_8x16_str(104,2," ON");
+ 230   5                                                      }
+ 231   4                                                      else
+ 232   4                                                      {
+ 233   5                                                                      oled_ascii_8x16_str(104,2,"   ");
+ 234   5                                                      }
+ 235   4                                                      break;
+ 236   4                                              case 1:
+ 237   4                                                      if(alarm_time[0][0] == 0x00)
+ 238   4                                                              oled_ascii_8x16_str(104,2,"OFF");
+ 239   4                                                      else
+ 240   4                                                              oled_ascii_8x16_str(104,2," ON");
+C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/17/2020 01:21:45 PAGE 5   
+
+ 241   4                                                      if(my_8bit_flag&0x08)
+ 242   4                                                      {
+ 243   5                                                              temp_buf[3]=(alarm_time[0][1]&0x70)/16 + '0';
+ 244   5                                                              temp_buf[4]=(alarm_time[0][1]&0x0f) + '0';//分
+ 245   5                                                              temp_buf[5]='\0';
+ 246   5                                                              oled_ascii_8x16_str(58+24,2,&temp_buf[3]);
+ 247   5                                                      }
+ 248   4                                                      else
+ 249   4                                                      {
+ 250   5                                                              oled_ascii_8x16_str(58+24,2,"  ");
+ 251   5                                                      }
+ 252   4                                                      
+ 253   4                                                      break;
+ 254   4                                              case 2:
+ 255   4                                                      temp_buf[3]=(alarm_time[0][1]&0x70)/16 + '0';
+ 256   4                                                      temp_buf[4]=(alarm_time[0][1]&0x0f) + '0';//分
+ 257   4                                                      temp_buf[5]='\0';
+ 258   4                                                      oled_ascii_8x16_str(58+24,2,&temp_buf[3]);
+ 259   4                                                      if(my_8bit_flag&0x08)
+ 260   4                                                      {
+ 261   5                                                              temp_buf[0]=(alarm_time[0][2]&0x30)/16 + '0';
+ 262   5                                                              temp_buf[1]=(alarm_time[0][2]&0x0f) + '0';    //时
+ 263   5                                                              temp_buf[2]='\0';
+ 264   5                                                              oled_ascii_8x16_str(58,2,temp_buf);
+ 265   5                                                      }
+ 266   4                                                      else
+ 267   4                                                      {
+ 268   5                                                              oled_ascii_8x16_str(58,2,"  ");
+ 269   5                                                      }
+ 270   4                                                      break;
+ 271   4                                              
+ 272   4                                              
+ 273   4                                              case 3:
+ 274   4                                                      temp_buf[0]=(alarm_time[0][2]&0x30)/16 + '0';
+ 275   4                                                      temp_buf[1]=(alarm_time[0][2]&0x0f) + '0';    //时
+ 276   4                                                      temp_buf[2]='\0';
+ 277   4                                                      oled_ascii_8x16_str(58,2,temp_buf);
+ 278   4                                                      if(my_8bit_flag&0x08)
+ 279   4                                                      {
+ 280   5                                                              if(alarm_time[1][0] == 0x00)
+ 281   5                                                                      oled_ascii_8x16_str(104,4,"OFF");
+ 282   5                                                              else
+ 283   5                                                                      oled_ascii_8x16_str(104,4," ON");
+ 284   5                                                      }
+ 285   4                                                      else
+ 286   4                                                      {
+ 287   5                                                                      oled_ascii_8x16_str(104,4,"   ");
+ 288   5                                                      }
+ 289   4                                                      break;
+ 290   4                                              case 4:
+ 291   4                                                      if(alarm_time[1][0] == 0x00)
+ 292   4                                                                      oled_ascii_8x16_str(104,4,"OFF");
+ 293   4                                                      else
+ 294   4                                                                      oled_ascii_8x16_str(104,4," ON");
+ 295   4                                                      if(my_8bit_flag&0x08)
+ 296   4                                                      {
+ 297   5                                                              temp_buf[3]=(alarm_time[1][1]&0x70)/16 + '0';
+ 298   5                                                              temp_buf[4]=(alarm_time[1][1]&0x0f) + '0';//分
+ 299   5                                                              temp_buf[5]='\0';
+ 300   5                                                              oled_ascii_8x16_str(58+24,4,&temp_buf[3]);
+ 301   5                                                      }
+ 302   4                                                      else
+C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/17/2020 01:21:45 PAGE 6   
+
+ 303   4                                                      {
+ 304   5                                                              oled_ascii_8x16_str(58+24,4,"  ");
+ 305   5                                                      }
+ 306   4                                                      break;
+ 307   4                                              case 5:
+ 308   4                                                      temp_buf[3]=(alarm_time[1][1]&0x70)/16 + '0';
+ 309   4                                                      temp_buf[4]=(alarm_time[1][1]&0x0f) + '0';//分
+ 310   4                                                      temp_buf[5]='\0';
+ 311   4                                                      oled_ascii_8x16_str(58+24,4,&temp_buf[3]);
+ 312   4                                                      if(my_8bit_flag&0x08)
+ 313   4                                                      {
+ 314   5                                                              temp_buf[0]=(alarm_time[1][2]&0x30)/16 + '0';
+ 315   5                                                              temp_buf[1]=(alarm_time[1][2]&0x0f) + '0';    //时
+ 316   5                                                              temp_buf[2]='\0';
+ 317   5                                                              oled_ascii_8x16_str(58,4,temp_buf);
+ 318   5                                                      }
+ 319   4                                                      else
+ 320   4                                                      {
+ 321   5                                                              oled_ascii_8x16_str(58,4,"  ");
+ 322   5                                                      }
+ 323   4                                                      break;
+ 324   4                                              default:
+ 325   4                                                      break;
+ 326   4                                      }
+ 327   3                                      /* *按键检测 */
+ 328   3                                      if((key_pressed==0)&&((shift_key==key_down)||(add_key==key_down)||(save_key==key_down)))
+ 329   3                                      {
+ 330   4                                              tc=2;
+ 331   4                                              key_pressed = 1;
+ 332   4                                      }
+ 333   3                                      delay1ms();
+ 334   3                                      if(key_pressed&&!(tc--))
+ 335   3                                      {
+ 336   4                                              if(add_key == key_down)//add_key按下
+ 337   4                                              {
+ 338   5                                                      timer0_count = 0;
+ 339   5                                                      key_pressed = 0;//开放按键读入
+ 340   5                                                      if(position < 3)
+ 341   5                                                      {
+ 342   6                                                              if(position == 0)
+ 343   6                                                                      alarm_time[0][0] = ~alarm_time[0][0];//开关状态改变
+ 344   6                                                              else
+ 345   6                                                                      bcd_add_1(alarm_time[0],position);//时间设置
+ 346   6                                                      }
+ 347   5                                                      else
+ 348   5                                                      {
+ 349   6                                                              if(position == 3)
+ 350   6                                                                      alarm_time[1][0] = ~alarm_time[1][0];//开关状态改变
+ 351   6                                                              else
+ 352   6                                                                      bcd_add_1(alarm_time[1],position-3);//时间设置
+ 353   6                                                      }
+ 354   5                                                      alarm_show();//刷新显示闹钟     
+ 355   5                                              }
+ 356   4                                              else if(shift_key == key_down)//shift_key按下
+ 357   4                                              {
+ 358   5                                                      position++;
+ 359   5                                                      if(position>5)//6个设置位
+ 360   5                                                              position = 0;
+ 361   5                                                      
+ 362   5                                                      timer0_count = 0;
+ 363   5                                                      
+ 364   5                                                      key_pressed = 0;//开放按键读取
+C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/17/2020 01:21:45 PAGE 7   
+
+ 365   5                                              }
+ 366   4                                              else if(save_key == key_down)//save_key按下
+ 367   4                                              {
+ 368   5                                                      key_pressed = 0;//开放按键读取
+ 369   5                                                      my_8bit_flag&=0xf7;
+ 370   5                                                      run_state = show_state;//返回显示时间模式
+ 371   5                                              }
+ 372   4                                                              
+ 373   4                                              else
+ 374   4                                                      key_pressed = 0;//判定为抖动
+ 375   4                                      }
+ 376   3                                      break;
+ 377   3                              case set_time:
+ 378   3                                      /*闪烁设置时间的实现*///12.16
+ 379   3                                      if(my_8bit_flag&0x08)
+ 380   3                                      {
+ 381   4                                              if(--blink_count==0)
+ 382   4                                                      my_8bit_flag&=0xf7;
+ 383   4                                      }
+ 384   3                                      else
+ 385   3                                      {
+ 386   4                                              if(++blink_count==10)
+ 387   4                                                      my_8bit_flag|=0x08;
+ 388   4                                      }
+ 389   3                                      switch(position)
+ 390   3                                      {
+ 391   4                                              unsigned char temp[3];
+ 392   4                                              case 6:
+ 393   4                                                      {//显示前一位闪烁的值
+ 394   5                                                      temp[0] = time_ascii[18];
+ 395   5                                                      temp[1] = time_ascii[19];       
+ 396   5                                                      temp[2] = '\0';
+ 397   5                                                      oled_ascii_8x16_str(31+24+24,5,temp);//显示miao
+ 398   5                                                      }
+ 399   4                                                      
+ 400   4                                                      if(my_8bit_flag&0x08)
+ 401   4                                                      {
+ 402   5      
+ 403   5                                                              temp[0] = time_ascii[2];
+ 404   5                                                              temp[1] = time_ascii[3];        
+ 405   5                                                              temp[2] = '\0';
+ 406   5                                                              oled_ascii_8x16_str(16,2,temp);//显示年
+ 407   5                                                      }
+ 408   4                                                      else
+ 409   4                                                      {
+ 410   5                                                              oled_ascii_8x16_str(16,2,"  ");
+ 411   5                                                      }
+ 412   4                                                      break;
+ 413   4                                              case 5:
+ 414   4                                                      {
+ 415   5                                                              temp[0] = time_ascii[2];
+ 416   5                                                              temp[1] = time_ascii[3];        
+ 417   5                                                              temp[2] = '\0';
+ 418   5                                                              oled_ascii_8x16_str(16,2,temp);//显示年
+ 419   5                                                      }
+ 420   4                                                      if(my_8bit_flag&0x08)
+ 421   4                                                      {
+ 422   5                                                              oled_chinese_characters_16x16(10*8+16*2,2,WEEK[time_ascii[11]-'0'+1]);//几
+ 423   5                                                      }
+ 424   4                                                      else
+ 425   4                                                      {
+ 426   5                                                              oled_ascii_8x16_str(10*8+16*2,2,"  ");
+C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/17/2020 01:21:45 PAGE 8   
+
+ 427   5                                                      }
+ 428   4                                                      break;
+ 429   4                                              case 4:
+ 430   4                                                      {
+ 431   5                                                              oled_chinese_characters_16x16(10*8+16*2,2,WEEK[time_ascii[11]-'0'+1]);//几
+ 432   5                                                      }
+ 433   4                                                      if(my_8bit_flag&0x08)
+ 434   4                                                      {
+ 435   5                                                              temp[0] = time_ascii[5];
+ 436   5                                                              temp[1] = time_ascii[6];        
+ 437   5                                                              temp[2] = '\0';
+ 438   5                                                              oled_ascii_8x16_str(16+24,2,temp);//显示月
+ 439   5                                                      }
+ 440   4                                                      else
+ 441   4                                                      {
+ 442   5                                                              oled_ascii_8x16_str(16+24,2,"  ");
+ 443   5                                                      }
+ 444   4                                                      
+ 445   4                                                      break;
+ 446   4                                              case 3:
+ 447   4                                                      {
+ 448   5                                                              temp[0] = time_ascii[5];
+ 449   5                                                              temp[1] = time_ascii[6];        
+ 450   5                                                              temp[2] = '\0';
+ 451   5                                                              oled_ascii_8x16_str(16+24,2,temp);//显示月
+ 452   5                                                      }
+ 453   4                                                      if(my_8bit_flag&0x08)
+ 454   4                                                      {
+ 455   5                                                              temp[0] = time_ascii[8];
+ 456   5                                                              temp[1] = time_ascii[9];        
+ 457   5                                                              temp[2] = '\0';
+ 458   5                                                              oled_ascii_8x16_str(16+24+24,2,temp);//显示日
+ 459   5                                                      }
+ 460   4                                                      else
+ 461   4                                                      {
+ 462   5                                                              oled_ascii_8x16_str(16+24+24,2,"  ");
+ 463   5                                                      }
+ 464   4                                                      break;
+ 465   4                                              case 2:
+ 466   4                                                      {
+ 467   5                                                              temp[0] = time_ascii[8];
+ 468   5                                                              temp[1] = time_ascii[9];        
+ 469   5                                                              temp[2] = '\0';
+ 470   5                                                              oled_ascii_8x16_str(16+24+24,2,temp);//显示日
+ 471   5                                                      }
+ 472   4                                                      if(my_8bit_flag&0x08)
+ 473   4                                                      {
+ 474   5                                                              temp[0] = time_ascii[12];
+ 475   5                                                              temp[1] = time_ascii[13];       
+ 476   5                                                              temp[2] = '\0';
+ 477   5                                                              oled_ascii_8x16_str(31,5,temp);//显示时
+ 478   5                                                      }
+ 479   4                                                      else
+ 480   4                                                      {
+ 481   5                                                              oled_ascii_8x16_str(31,5,"  ");
+ 482   5                                                      }
+ 483   4                                                      break;
+ 484   4                                              case 1:
+ 485   4                                                      {
+ 486   5                                                              temp[0] = time_ascii[12];
+ 487   5                                                              temp[1] = time_ascii[13];       
+ 488   5                                                              temp[2] = '\0';
+C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/17/2020 01:21:45 PAGE 9   
+
+ 489   5                                                              oled_ascii_8x16_str(31,5,temp);//显示时
+ 490   5                                                      }
+ 491   4                                                      if(my_8bit_flag&0x08)
+ 492   4                                                      {
+ 493   5                                                              temp[0] = time_ascii[15];
+ 494   5                                                              temp[1] = time_ascii[16];       
+ 495   5                                                              temp[2] = '\0';
+ 496   5                                                              oled_ascii_8x16_str(31+24,5,temp);//显示分
+ 497   5                                                      }
+ 498   4                                                      else
+ 499   4                                                      {
+ 500   5                                                              oled_ascii_8x16_str(31+24,5,"  ");//显示分
+ 501   5                                                      }                       
+ 502   4                                                      break;
+ 503   4                                              case 0:
+ 504   4                                                      {
+ 505   5                                                              temp[0] = time_ascii[15];
+ 506   5                                                              temp[1] = time_ascii[16];       
+ 507   5                                                              temp[2] = '\0';
+ 508   5                                                              oled_ascii_8x16_str(31+24,5,temp);//显示分
+ 509   5                                                      }
+ 510   4                                                      if(my_8bit_flag&0x08)
+ 511   4                                                      {
+ 512   5                                                              temp[0] = time_ascii[18];
+ 513   5                                                              temp[1] = time_ascii[19];       
+ 514   5                                                              temp[2] = '\0';
+ 515   5                                                              oled_ascii_8x16_str(31+24+24,5,temp);//显示miao
+ 516   5                                                      }
+ 517   4                                                      else
+ 518   4                                                      {
+ 519   5                                                              oled_ascii_8x16_str(31+24+24,5,"  ");//显示miao
+ 520   5                                                      }                       
+ 521   4                                                      break;  
+ 522   4                                              default:
+ 523   4                                                      break;
+ 524   4                                      }
+ 525   3                                      
+ 526   3                                      if((my_8bit_flag&0x10)==0x00)//只显示一次菜单，避免循环显示对程序带来较大延时
+ 527   3                                      {
+ 528   4                                              oled_all_fill(0x00);
+ 529   4                                              oled_ascii_8x16_str(12,0,"< Time  Set >\0");
+ 530   4                                              my_8bit_flag |= 0x10;
+ 531   4                                              ds1302_read_all_time();//读一次时间到time全局变量
+ 532   4                                              time_ascii = ds1302_time_dat_to_ascii(TIME);
+ 533   4                                              show_time(time_ascii,2);//显示一次当前的时间
+ 534   4                                              position = 6;//初始化设置年位置
+ 535   4                                      }
+ 536   3                                      /* *按键检测 */
+ 537   3                                      if((key_pressed==0)&&((shift_key==key_down)||(add_key==key_down)||(save_key==key_down)))
+ 538   3                                      {
+ 539   4                                              tc=2;
+ 540   4                                              key_pressed = 1;
+ 541   4                                      }
+ 542   3                                      delay1ms();
+ 543   3                                      if(key_pressed&&!(tc--))
+ 544   3                                      {
+ 545   4                                              if(add_key == key_down)//add_key按下
+ 546   4                                              {
+ 547   5                                                      timer0_count = 0;
+ 548   5                                                      bcd_add_1(TIME,position);
+ 549   5                                                      key_pressed = 0;//开放按键读入
+ 550   5                                                      time_ascii = ds1302_time_dat_to_ascii(TIME);//刷新显示
+C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/17/2020 01:21:45 PAGE 10  
+
+ 551   5                                                      //show_time(time_ascii,2);
+ 552   5                                              }
+ 553   4                                              else if(shift_key == key_down)//shift_key按下
+ 554   4                                              {
+ 555   5                                                      
+ 556   5                                                      position--;
+ 557   5                                                      if(position==-1)//7个设置位
+ 558   5                                                              position = 6;
+ 559   5                                                      timer0_count = 0;
+ 560   5                                                      
+ 561   5                                                      key_pressed = 0;//开放按键读取
+ 562   5                                              }
+ 563   4                                              else if(save_key == key_down)//save_key按下
+ 564   4                                              {
+ 565   5                                                      ds1302_init();//重新写入新设置的时间到1302
+ 566   5                                                      key_pressed = 0;//开放按键读取
+ 567   5                                                      position=0;
+ 568   5                                                      my_8bit_flag&=0xf7;
+ 569   5                                                      run_state = show_state;//返回显示时间模式
+ 570   5                                              }       
+ 571   4                                              else
+ 572   4                                                      key_pressed = 0;//判定为抖动
+ 573   4                                      }
+ 574   3                                      
+ 575   3                                      break;
+ 576   3                              default:
+ 577   3                                      break;
+ 578   3                                      
+ 579   3                      }
+ 580   2                      
+ 581   2              }
+ 582   1      }
+ 583          
+ 584          unsigned char* ds1302_time_dat_to_ascii(unsigned char time[])
+ 585          {
+ 586   1              static unsigned char time_ascii[] ="2020-11-09-120:00:12\0";
+ 587   1              //存放转换后的ascii码年-月-日-周时：分：秒
+ 588   1              unsigned char* TIME = time;
+ 589   1              time_ascii[19] = (TIME[0]&0x0f) + '0';          //秒
+ 590   1              time_ascii[18] = (TIME[0]&0x70)/16 + '0';
+ 591   1              
+ 592   1              time_ascii[16] = (TIME[1]&0x0f) + '0';          //分
+ 593   1              time_ascii[15] = (TIME[1]&0x70)/16 + '0';
+ 594   1                      
+ 595   1              time_ascii[13] = (TIME[2]&0x0f) + '0';          //时
+ 596   1              time_ascii[12] = (TIME[2]&0x30)/16 + '0';
+ 597   1                      
+ 598   1              time_ascii[11] = (TIME[5]&0x07) + '1';          //周
+ 599   1                      
+ 600   1              time_ascii[9] = (TIME[3]&0x0f) + '0';           //日
+ 601   1              time_ascii[8] = (TIME[3]&0x30)/16 + '0';
+ 602   1                      
+ 603   1              time_ascii[6] = (TIME[4]&0x0f) + '0';           //月
+ 604   1              time_ascii[5] = (TIME[4]&0x10)/16 + '0';
+ 605   1                      
+ 606   1              time_ascii[3] = (TIME[6]&0x0f) + '0';           //年
+ 607   1              time_ascii[2] = (TIME[6]&0xf0)/16 + '0';
+ 608   1              
+ 609   1              time_ascii[1] =  '0';
+ 610   1              time_ascii[0] =  '2';
+ 611   1              return time_ascii;
+ 612   1      }
+C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/17/2020 01:21:45 PAGE 11  
+
+ 613          void show_time(unsigned char ascii_time[],unsigned char page_drift)
+ 614          {
+ 615   1      
+ 616   1      
+ 617   1              unsigned char* temp = ascii_time;
+ 618   1              temp[10] = '\0';//取年月日
+ 619   1              oled_ascii_8x16_str(0,page_drift,temp);//显示年月日
+ 620   1              oled_chinese_characters_16x16(10*8,page_drift,WEEK[0]);//星
+ 621   1              oled_chinese_characters_16x16(10*8+16,page_drift,WEEK[1]);//期
+ 622   1              oled_chinese_characters_16x16(10*8+16*2,page_drift,WEEK[ascii_time[11]-'0'+1]);//几
+ 623   1              temp = ascii_time;
+ 624   1              temp = temp+12;//取时时分秒
+ 625   1              oled_ascii_8x16_str(31,3+page_drift,temp);//显示时分秒
+ 626   1      }
+ 627          
+ 628          void Timer0Init(void)           //50毫秒@12.000MHz
+ 629          {
+ 630   1              TMOD = 0x01;            //设置定时器为16位
+ 631   1              TL0 = 0xB0;             //设置定时器初值
+ 632   1              TH0 = 0x3C;             //设置定时器初值
+ 633   1              TF0 = 0;                //清除中断标志位
+ 634   1              TR0 = 0;                //关闭定时器
+ 635   1      }
+ 636          void exint0(void) interrupt 0           //外部中断0的中断服务函数
+ 637          {
+ 638   1              TR0 = 1;//打开定时器
+ 639   1              EX0 = 0;
+ 640   1      }
+ 641          
+ 642          void timer0(void) interrupt 1           //定时器0的中断服务函数
+ 643          {
+ 644   1              TL0 = 0xB0;             //设置定时器初值
+ 645   1              TH0 = 0x3C;             //设置定时器初值
+ 646   1              if(menu_key == key_down)//设置按键的消抖
+ 647   1              {
+ 648   2                      
+ 649   2                      if(run_state != menu_state)
+ 650   2                              my_8bit_flag &= 0x0f;//高4位标志清零
+ 651   2                      run_state = menu_state;
+ 652   2              }
+ 653   1              else
+ 654   1                      EX0 = 1;
+ 655   1              if(run_state != show_state)
+ 656   1                      timer0_count++;
+ 657   1              if(timer0_count >200)//如果10秒没有设置操作，退出菜单
+ 658   1              {
+ 659   2                      
+ 660   2                      if(run_state == set_alarm)//从设置闹钟退回来
+ 661   2                      {
+ 662   3                              alarm_time[0][0] = TIME[0];//不保存设置
+ 663   3                              alarm_time[0][1] = TIME[1];
+ 664   3                              alarm_time[0][2] = TIME[2];
+ 665   3                              alarm_time[1][0] = TIME[3];
+ 666   3                              alarm_time[1][1] = TIME[4];
+ 667   3                              alarm_time[1][2] = TIME[5];
+ 668   3                              
+ 669   3                      }
+ 670   2                      ds1302_read_all_time();//读一次时间到time全局变量 防止意外
+ 671   2                      run_state = show_state;
+ 672   2                      timer0_count = 0;
+ 673   2                      TR0 = 0;
+ 674   2                      EX0 = 1;
+C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/17/2020 01:21:45 PAGE 12  
+
+ 675   2                      my_8bit_flag |= 0x0f;//退出时清除选项按键缓存
+ 676   2                      key_pressed = 0;
+ 677   2                      my_8bit_flag&=0xf7;
+ 678   2              }
+ 679   1      }
+ 680          
+ 681          void bcd_add_1(unsigned char *bcd_dat,unsigned char position)
+ 682          {
+ 683   1              bcd_dat[position]++;
+ 684   1              if((bcd_dat[position]&0x0f)>9)                                   //BCD进位方式
+ 685   1              {
+ 686   2                      bcd_dat[position]=bcd_dat[position]+6;
+ 687   2              }
+ 688   1              switch(position)
+ 689   1              {
+ 690   2                      case 0:         //秒
+ 691   2                              if(bcd_dat[position] >= 0x60)           //59 秒
+ 692   2                                      bcd_dat[position] &= 0x80;              //秒钟清零
+ 693   2                              break;
+ 694   2                      case 1:         //分
+ 695   2                              if(bcd_dat[position] >= 0x60)           //59 分
+ 696   2                                      bcd_dat[position] &= 0x80;              //分钟清零
+ 697   2                              break;
+ 698   2                      case 2:         //时
+ 699   2                              if(bcd_dat[position] >= 0x24)           //23 时
+ 700   2                                      bcd_dat[position] &= 0xc0;              //时钟清零
+ 701   2                              break;
+ 702   2                      case 3:         //日
+ 703   2                              if(bcd_dat[position] >= 0x32)           //31 日
+ 704   2                                      bcd_dat[position] &= 0xc0;              //日清零
+ 705   2                              break;
+ 706   2                      case 4:         //月
+ 707   2                              if(bcd_dat[position] >= 0x13)           //12 月
+ 708   2                                      bcd_dat[position] &= 0xe0;              //月清零
+ 709   2                              break;
+ 710   2                      case 5:         //周
+ 711   2                              if(bcd_dat[position] >= 0x07)           // 7 周
+ 712   2                                      bcd_dat[position] &= 0xf0;              //周清零
+ 713   2                              break;
+ 714   2                      case 6:         //年
+ 715   2                              if(bcd_dat[position] > 0x99)            //99 年
+ 716   2                                      bcd_dat[position] &= 0x00;              //年清零
+ 717   2                              break;
+ 718   2              }       
+ 719   1      }
+ 720          
+ 721          void delay1ms()         //@12.000MHz
+ 722          {
+ 723   1              unsigned char i, j;
+ 724   1      
+ 725   1              i = 12;
+ 726   1              j = 169;
+ 727   1              do
+ 728   1              {
+ 729   2                      while (--j);
+ 730   2              } while (--i);
+ 731   1      }
+ 732          
+ 733          void alarm_show(void)
+ 734          {
+ 735   1              temp_buf[0]=(alarm_time[0][2]&0x30)/16 + '0';
+ 736   1              temp_buf[1]=(alarm_time[0][2]&0x0f) + '0';    //时
+C51 COMPILER V9.54   CALENDAR_CLOCK_MAIN                                                   12/17/2020 01:21:45 PAGE 13  
+
+ 737   1              temp_buf[2]=':';
+ 738   1              temp_buf[3]=(alarm_time[0][1]&0x70)/16 + '0';
+ 739   1              temp_buf[4]=(alarm_time[0][1]&0x0f) + '0';//分
+ 740   1              temp_buf[5]='\0';
+ 741   1              oled_ascii_8x16_str(58,2,temp_buf);
+ 742   1              temp_buf[0]=(alarm_time[1][2]&0x30)/16 + '0';
+ 743   1              temp_buf[1]=(alarm_time[1][2]&0x0f) + '0';    //时
+ 744   1              temp_buf[2]=':';
+ 745   1              temp_buf[3]=(alarm_time[1][1]&0x70)/16 + '0';
+ 746   1              temp_buf[4]=(alarm_time[1][1]&0x0f) + '0';//分
+ 747   1              temp_buf[5]='\0';
+ 748   1              oled_ascii_8x16_str(58,4,temp_buf);
+ 749   1              if(alarm_time[0][0] == 0x00)
+ 750   1                      oled_ascii_8x16_str(104,2,"OFF");
+ 751   1              else
+ 752   1                      oled_ascii_8x16_str(104,2," ON");
+ 753   1              if(alarm_time[1][0] == 0x00)
+ 754   1                      oled_ascii_8x16_str(104,4,"OFF");
+ 755   1              else
+ 756   1                      oled_ascii_8x16_str(104,4," ON");
+ 757   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   3011    ----
+   CONSTANT SIZE    =    166    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     49      10
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,7 @@
+".\Objects\STARTUP.obj",
+".\Objects\calendar_clock_main.obj",
+".\Objects\ds1302_driver.obj",
+".\Objects\oled_iic_driver.obj",
+".\Objects\font_library.obj" 
+TO ".\Objects\clender" 
+PRINT(".\Listings\clender.m51") RAMSIZE(256) 

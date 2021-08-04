@@ -1,0 +1,150 @@
+C51 COMPILER V9.54   DS1302_DRIVER                                                         12/17/2020 01:21:45 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE DS1302_DRIVER
+OBJECT MODULE PLACED IN .\Objects\ds1302_driver.obj
+COMPILER INVOKED BY: E:\keil 5 mdk\C51\BIN\C51.EXE ds1302_driver.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\L
+                    -istings\ds1302_driver.lst) OBJECT(.\Objects\ds1302_driver.obj)
+
+line level    source
+
+   1          #include "ds1302_driver.h"
+   2          
+   3          unsigned char code ds1302_addr_tab[7] = {0x80, 0x82, 0x84, 0x86, 0x88, 0x8a, 0x8c};
+   4          //ds1302的时间寄存器地址
+   5          unsigned char TIME[7] = {0x50, 0x59, 0x22, 0x31, 0x12, 0x02, 0x20};
+   6          //全局时间变量 秒 分 时 日 月 周 年 ，这里也是初始化时候给的时间初始值
+   7          
+   8          /*******************************************************************************
+   9          * 函数功能                 : 向DS1302命令（地址+数据）
+  10          * 输    入         : addr,dat
+  11          * 输    出         : 无*/
+  12          void ds1302_write(unsigned char addr, unsigned char dat)
+  13          {
+  14   1              unsigned char n;
+  15   1              RST = 0;
+  16   1              _nop_();
+  17   1      
+  18   1              SCLK = 0;               //先将SCLK置低电平。
+  19   1              _nop_();
+  20   1              RST = 1;                //然后将RST(CE)置高电平。
+  21   1              _nop_();
+  22   1      
+  23   1              for (n=0; n<8; n++)//开始传送八位地址命令
+  24   1              {
+  25   2                      IO = addr & 0x01;//数据从低位开始传送
+  26   2                      addr >>= 1;
+  27   2                      SCLK = 1;       //数据在上升沿时，DS1302读取数据
+  28   2                      _nop_();
+  29   2                      SCLK = 0;
+  30   2                      _nop_();
+  31   2              }
+  32   1              for (n=0; n<8; n++)             //写入8位数据
+  33   1              {
+  34   2                      IO = dat & 0x01;
+  35   2                      dat >>= 1;
+  36   2                      SCLK = 1;                       //数据在上升沿时，DS1302读取数据
+  37   2                      _nop_();
+  38   2                      SCLK = 0;
+  39   2                      _nop_();        
+  40   2              }       
+  41   1                       
+  42   1              RST = 0;                //传送数据结束
+  43   1              _nop_();
+  44   1      }
+  45          
+  46          /*******************************************************************************
+  47          * 函数功能                 : 读取一个地址的数据
+  48          * 输    入         : addr
+  49          * 输    出         : dat*/
+  50          unsigned char ds1302_read(unsigned char addr)
+  51          {
+  52   1              unsigned char n,dat,dat1;
+  53   1              addr |= 0x01;
+  54   1              RST = 0;
+C51 COMPILER V9.54   DS1302_DRIVER                                                         12/17/2020 01:21:45 PAGE 2   
+
+  55   1              _nop_();
+  56   1      
+  57   1              SCLK = 0;               //先将SCLK置低电平。
+  58   1              _nop_();
+  59   1              RST = 1;                //然后将RST(CE)置高电平。
+  60   1              _nop_();
+  61   1      
+  62   1              for(n=0; n<8; n++)//开始传送八位地址命令
+  63   1              {
+  64   2                      IO = addr & 0x01;//数据从低位开始传送
+  65   2                      addr >>= 1;
+  66   2                      SCLK = 1;               //数据在上升沿时，DS1302读取数据
+  67   2                      _nop_();
+  68   2                      SCLK = 0;       //DS1302下降沿时，放置数据
+  69   2                      _nop_();
+  70   2              }
+  71   1              _nop_();
+  72   1              for(n=0; n<8; n++)//读取8位数据
+  73   1              {
+  74   2                      dat1 = IO;      //从最低位开始接收
+  75   2                      dat = (dat>>1) | (dat1<<7);
+  76   2                      SCLK = 1;
+  77   2                      _nop_();
+  78   2                      SCLK = 0;       //DS1302下降沿时，放置数据
+  79   2                      _nop_();
+  80   2              }
+  81   1      
+  82   1              RST = 0;
+  83   1              _nop_();                //以下为DS1302复位的稳定时间,必须的。
+  84   1              SCLK = 1;
+  85   1              _nop_();
+  86   1              IO = 0;
+  87   1              _nop_();
+  88   1              IO = 1;
+  89   1              _nop_();
+  90   1              return dat;     
+  91   1      }
+  92          
+  93          /*******************************************************************************
+  94          * 函数功能                 : 初始化DS1302.
+  95          * 输    入         : 无
+  96          * 输    出         : 无*/
+  97          void ds1302_init()
+  98          {
+  99   1              unsigned char n;
+ 100   1              ds1302_write(0x8E,0x00);                 //禁止写保护，就是关闭写保护功能
+ 101   1              for (n=0; n<7; n++)             //写入7个字节的时钟信号：分秒时日月周年
+ 102   1              {
+ 103   2                      ds1302_write(ds1302_addr_tab[n],TIME[n]);       
+ 104   2              }
+ 105   1              ds1302_write(0x8E,0x80);                 //打开写保护功能
+ 106   1      }
+ 107          
+ 108          /*******************************************************************************
+ 109          * 函数功能                 : 读取时钟信息
+ 110          * 输    入         : 无
+ 111          * 输    出         : 无*/
+ 112          void ds1302_read_all_time()
+ 113          {
+ 114   1              unsigned char n;
+ 115   1              for (n=0; n<7; n++)     //读取7个字节的时钟信号：分秒时日月周年
+ 116   1              {
+C51 COMPILER V9.54   DS1302_DRIVER                                                         12/17/2020 01:21:45 PAGE 3   
+
+ 117   2                      TIME[n] = ds1302_read(ds1302_addr_tab[n]);
+ 118   2              }
+ 119   1                      
+ 120   1      }
+ 121          
+ 122          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    187    ----
+   CONSTANT SIZE    =      7    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      7    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
